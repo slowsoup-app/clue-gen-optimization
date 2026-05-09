@@ -1,0 +1,6 @@
+anthropic>=0.40.0
+groq>=0.13.0
+pandas>=2.2.0
+openpyxl>=3.1.0
+python-dotenv>=1.0.0
+pymoo>=0.6.1
