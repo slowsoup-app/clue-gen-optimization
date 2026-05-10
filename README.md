@@ -49,6 +49,11 @@ A Pareto front showing cost vs quality tradeoffs across different clue generatio
 
 ---
 
+## Limitations & Future Works
+* Number of Clues
+  * Our current approach searches based on a hardcoded "Number of Clues", whereas in reality, a better approach might be to either let the model decide the exact number or adjust the limit based on puzzle difficulty.
+
+---
 ## Citation
 
 ```bibtex
