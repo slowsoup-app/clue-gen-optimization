@@ -36,6 +36,7 @@ PROMPT_TEMPLATES: dict[str, str] = {
         "Hidden solution (do NOT reveal directly):\n{answer}\n\n"
         "Step 1 (silent): identify the {n} most important elements of the solution.\n"
         "Step 2: for each element, write one clue that points the solver toward it without stating it directly.\n\n"
+        'Respond ONLY with a JSON object of the form: {{"clues": ["clue 1", "clue 2", ...]}}. '
         "No headings, no explanations."
     ),
 }
@@ -88,28 +89,8 @@ def generate_clues(
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
 
-        response_format={
-            "type": "json_schema",
-            "json_schema": {
-                "name": "clue_set",
-                "strict": True,
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "clues": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "minItems": n_clues,
-                            "maxItems": n_clues,
-                        }
-                    },
-                    "required": ["clues"],
-                    "additionalProperties": False,
-                }
-            }
-        }
-
-        )
+        response_format={"type": "json_object"},
+    )
 
 
     raw = response.choices[0].message.content or ""
