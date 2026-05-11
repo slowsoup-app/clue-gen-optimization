@@ -41,8 +41,17 @@ def monrp():
     data = {
         "algo": ALGO,
         "pop": POP, "gens": GENS, "puzzles": puzzle_indices, "seed": SEED,
-        "front": [
-            {"config": dict(x), "cost": float(f[0]), "quality": float(-f[1])}
+       "front": [
+            {
+                "config": {
+                    "model": str(x["model"]),
+                    "template": str(x["template"]),
+                    "n_clues": int(x["n_clues"]),
+                    "temperature": float(x["temperature"]),
+                },
+                "cost": float(f[0]),
+                "quality": float(-f[1]),
+            }
             for x, f in zip(res.X, res.F)
         ],
     }
