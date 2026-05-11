@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-
+from . import config    # don't touch it!!
 from groq import Groq
 
 
