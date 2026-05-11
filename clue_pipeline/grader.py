@@ -128,8 +128,7 @@ def grade_clues(
     
     prompt = _build_user_prompt(title, story, answer, clues)
     runs: list[GradeRun] = []
-    for i in range(n_runs):
-        print(f"[grader] run {i + 1}/{n_runs} ({model})...", flush=True)
+    for _ in range(n_runs):
         runs.append(_grade_once(prompt, model))
 
     avg_nr = sum(r.non_revelation for r in runs) / len(runs)
