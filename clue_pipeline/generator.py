@@ -88,7 +88,7 @@ def generate_clues(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
-
+        max_tokens=1024,
         response_format={"type": "json_object"},
     )
 
