@@ -18,7 +18,7 @@ SPLAT's `puzzles.xlsx`
 ## Objectives
 
 - **Minimize cost**: Groq API cost per puzzle
-- **Maximize quality**: Claude API (with `temperature = 0`, 3-run avergaed) as grader
+- **Maximize quality score**: Claude API (with `temperature = 0`) as grader
   - Non-revelation (0-3)
     - 3: No single clue reveals the core twist
     - 2: One clue is borderline but still requires inference
@@ -52,6 +52,9 @@ A Pareto front showing cost vs quality tradeoffs across different clue generatio
 ## Limitations & Future Works
 * Number of Clues
   * Our current approach searches based on a hardcoded "Number of Clues", whereas in reality, a better approach might be to either let the model decide the exact number or adjust the limit based on puzzle difficulty.
+* Grading: 1-run vs. 3-run averaged
+  * Our intuition was to take the average of the quality scores across 3 runs, but after experimenting with the dataset, we found that the deviation between individual grading runs is quite minimal given that Claude is set to temperature = 0. 
+  * Thus, we went with 1 run instead of 3 to save tokens, though ideally the 3-run average approach would be more bulletproof and better justified despite the minimal difference in effect.
 
 ---
 ## Citation
