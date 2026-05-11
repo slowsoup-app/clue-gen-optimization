@@ -11,13 +11,13 @@ from clue_pipeline.runner import sample_puzzles
 
 # ALGO = "spea2"
 ALGO = "nsga2"
-# POP = 10
-# GENS = 5
-# PUZZLES = 5
+POP = 10
+GENS = 5
+PUZZLES = 5
 
-POP = 4
-GENS = 2
-PUZZLES = 2
+# POP = 4
+# GENS = 2
+# PUZZLES = 2
 
 SEED = 42
 GRADER_RUNS = 1
