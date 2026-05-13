@@ -1,7 +1,8 @@
 import json
+import time
 from dataclasses import dataclass
 from . import config    # don't touch it!!
-from groq import BadRequestError, Groq
+from groq import BadRequestError, Groq, InternalServerError
 
 
 @dataclass
@@ -84,8 +85,11 @@ def generate_clues(
         title=title, story=story, answer=answer, n=n_clues
     )
 
-    last_err: BadRequestError | None = None
-    for _ in range(3):
+    last_err: Exception | None = None
+    backoffs = [0, 10, 30]
+    for delay in backoffs:
+        if delay:
+            time.sleep(delay)
         try:
             response = groq.chat.completions.create(
                 model=model,
@@ -98,6 +102,8 @@ def generate_clues(
         except BadRequestError as e:
             if getattr(e, "code", None) != "json_validate_failed":
                 raise
+            last_err = e
+        except InternalServerError as e:
             last_err = e
     else:
         raise last_err  # type: ignore[misc]
