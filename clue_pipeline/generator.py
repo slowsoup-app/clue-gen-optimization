@@ -54,7 +54,7 @@ class GenerationResult:
     raw_response: str
 
 
-groq = Groq()
+groq = Groq(max_retries=10)
 
 
 def _parse_clues(text: str, expected: int) -> list[str]:

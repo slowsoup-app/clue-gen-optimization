@@ -70,7 +70,7 @@ class GradingResult:
     model: str
 
 
-claude = anthropic.Anthropic()
+claude = anthropic.Anthropic(max_retries=10)
 
 
 def _build_user_prompt(title: str, story: str, answer: str, clues: list[str]) -> str:

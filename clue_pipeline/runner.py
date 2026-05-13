@@ -1,6 +1,7 @@
 import hashlib
 import json
 import statistics
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -50,6 +51,37 @@ def _cache_path(key: str) -> Path:
     return CACHE_DIR / f"{h}.json"
 
 
+def _eval_one_puzzle(
+    *,
+    idx: int,
+    row,
+    model: str,
+    template: str,
+    n_clues: int,
+    temperature: float,
+    grader_model: str,
+    grader_runs: int,
+) -> PuzzleEval:
+    gen = generate_clues(
+        title=row["title"], story=row["story"], answer=row["answer"],
+        model=model, n_clues=int(n_clues),
+        temperature=float(temperature), template=template,
+    )
+    grade = grade_clues(
+        title=row["title"], story=row["story"], answer=row["answer"],
+        clues=gen.clues, model=grader_model, n_runs=grader_runs,
+    )
+    return PuzzleEval(
+        puzzle_idx=int(idx),
+        title=row["title"],
+        clues=gen.clues,
+        non_revelation=grade.avg_non_revelation,
+        coverage=grade.avg_coverage,
+        quality=grade.avg_quality,
+        gen_cost=gen.cost_usd,
+    )
+
+
 def evaluate_config(
     *,
     model: str,
@@ -87,30 +119,32 @@ def evaluate_config(
         )
 
     df = load_puzzles()
-    per_puzzle: list[PuzzleEval] = []
-    for i, idx in enumerate(puzzle_indices, 1):
-        row = df.iloc[idx]
-        if progress:
-            print(f"  [{i}/{len(puzzle_indices)}] puzzle {idx}: {row['title']!r}", flush=True)
+    results_by_idx: dict[int, PuzzleEval] = {}
+    with ThreadPoolExecutor(max_workers=len(puzzle_indices)) as ex:
+        futures = {
+            ex.submit(
+                _eval_one_puzzle,
+                idx=idx,
+                row=df.iloc[idx],
+                model=model,
+                template=template,
+                n_clues=n_clues,
+                temperature=temperature,
+                grader_model=grader_model,
+                grader_runs=grader_runs,
+            ): idx
+            for idx in puzzle_indices
+        }
+        completed = 0
+        for fut in as_completed(futures):
+            idx = futures[fut]
+            results_by_idx[idx] = fut.result()
+            completed += 1
+            if progress:
+                title = df.iloc[idx]["title"]
+                print(f"  [{completed}/{len(puzzle_indices)}] puzzle {idx}: {title!r}", flush=True)
 
-        gen = generate_clues(
-            title=row["title"], story=row["story"], answer=row["answer"],
-            model=model, n_clues=int(n_clues),
-            temperature=float(temperature), template=template,
-        )
-        grade = grade_clues(
-            title=row["title"], story=row["story"], answer=row["answer"],
-            clues=gen.clues, model=grader_model, n_runs=grader_runs,
-        )
-        per_puzzle.append(PuzzleEval(
-            puzzle_idx=int(idx),
-            title=row["title"],
-            clues=gen.clues,
-            non_revelation=grade.avg_non_revelation,
-            coverage=grade.avg_coverage,
-            quality=grade.avg_quality,
-            gen_cost=gen.cost_usd,
-        ))
+    per_puzzle: list[PuzzleEval] = [results_by_idx[idx] for idx in puzzle_indices]
 
     result = ConfigEval(
         config=config,
