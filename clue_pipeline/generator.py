@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from . import config    # don't touch it!!
-from groq import Groq
+from groq import BadRequestError, Groq
 
 
 @dataclass
@@ -84,13 +84,23 @@ def generate_clues(
         title=title, story=story, answer=answer, n=n_clues
     )
 
-    response = groq.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=temperature,
-        max_tokens=4096,
-        response_format={"type": "json_object"},
-    )
+    last_err: BadRequestError | None = None
+    for _ in range(3):
+        try:
+            response = groq.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=temperature,
+                max_tokens=4096,
+                response_format={"type": "json_object"},
+            )
+            break
+        except BadRequestError as e:
+            if getattr(e, "code", None) != "json_validate_failed":
+                raise
+            last_err = e
+    else:
+        raise last_err  # type: ignore[misc]
 
 
     raw = response.choices[0].message.content or ""
