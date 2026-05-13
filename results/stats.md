@@ -10,12 +10,12 @@ Seeds per algorithm: **5**
 | SPEA2 | 0.001058 | 0.001065 | 5.225e-05 | 0.0009993 | 0.001145 |
 | RANDOM | 0.001059 | 0.001019 | 0.0001029 | 0.0008806 | 0.001139 |
 
-## Pairwise Mann-Whitney U (two-sided)
+## Pairwise Mann-Whitney U (two-sided) and Vargha-Delaney A12
 
-Null hypothesis: the two algorithms produce hypervolume distributions with the same median.
+Mann-Whitney null hypothesis: the two algorithms produce hypervolume distributions with the same median. A12 is the probability that a random run of A produces a higher hypervolume than a random run of B; A12 > 0.5 favors A.
 
-| A | B | U | p | significant (alpha=0.05) |
-|---|---|---|---|---|
-| NSGA2 | SPEA2 | 14.0 | 0.8413 | no |
-| NSGA2 | RANDOM | 17.0 | 0.4206 | no |
-| SPEA2 | RANDOM | 15.0 | 0.6905 | no |
+| A | B | U | p | significant (alpha=0.05) | A12 | magnitude |
+|---|---|---|---|---|---|---|
+| NSGA2 | SPEA2 | 14.0 | 0.8413 | no | 0.560 | small |
+| NSGA2 | RANDOM | 17.0 | 0.4206 | no | 0.680 | medium |
+| SPEA2 | RANDOM | 15.0 | 0.6905 | no | 0.600 | small |

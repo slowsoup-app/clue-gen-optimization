@@ -132,6 +132,25 @@ def plot_convergence(all_runs, ref):
     print(f"saved -> {out}")
 
 
+def _vargha_delaney_a12(a, b):
+    a = np.asarray(a)
+    b = np.asarray(b)
+    greater = sum(1 for x in a for y in b if x > y)
+    equal = sum(1 for x in a for y in b if x == y)
+    return (greater + 0.5 * equal) / (len(a) * len(b))
+
+
+def _a12_magnitude(a12):
+    d = abs(a12 - 0.5)
+    if d < 0.06:
+        return "negligible"
+    if d < 0.14:
+        return "small"
+    if d < 0.21:
+        return "medium"
+    return "large"
+
+
 def run_stats(hv_per_algo):
     algos = list(hv_per_algo.keys())
     n_seeds = len(hv_per_algo[algos[0]])
@@ -151,17 +170,27 @@ def run_stats(hv_per_algo):
             f"{np.std(vals, ddof=1):.4g} | {np.min(vals):.4g} | {np.max(vals):.4g} |"
         )
     lines.append("")
-    lines.append("## Pairwise Mann-Whitney U (two-sided)")
+    lines.append("## Pairwise Mann-Whitney U (two-sided) and Vargha-Delaney A12")
     lines.append("")
-    lines.append("Null hypothesis: the two algorithms produce hypervolume distributions with the same median.")
+    lines.append(
+        "Mann-Whitney null hypothesis: the two algorithms produce hypervolume "
+        "distributions with the same median. "
+        "A12 is the probability that a random run of A produces a higher hypervolume "
+        "than a random run of B; A12 > 0.5 favors A."
+    )
     lines.append("")
-    lines.append("| A | B | U | p | significant (alpha=0.05) |")
-    lines.append("|---|---|---|---|---|")
+    lines.append("| A | B | U | p | significant (alpha=0.05) | A12 | magnitude |")
+    lines.append("|---|---|---|---|---|---|---|")
     for i, a in enumerate(algos):
         for b in algos[i + 1:]:
             u, p = mannwhitneyu(hv_per_algo[a], hv_per_algo[b], alternative="two-sided")
             sig = "yes" if p < 0.05 else "no"
-            lines.append(f"| {a.upper()} | {b.upper()} | {u:.1f} | {p:.4g} | {sig} |")
+            a12 = _vargha_delaney_a12(hv_per_algo[a], hv_per_algo[b])
+            mag = _a12_magnitude(a12)
+            lines.append(
+                f"| {a.upper()} | {b.upper()} | {u:.1f} | {p:.4g} | {sig} | "
+                f"{a12:.3f} | {mag} |"
+            )
     lines.append("")
     out = RESULTS / "stats.md"
     out.write_text("\n".join(lines))
