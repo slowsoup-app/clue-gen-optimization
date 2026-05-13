@@ -1,12 +1,12 @@
 # MONRP x SlowSoup — Clue Generation Pipeline
 
-A multi-objective optimization study of LLM-based clue generation for lateral-thinking situation puzzles, derived from the SlowSoup platform.
+A multi-objective optimization study of LLM-based clue generation for lateral-thinking puzzles, derived from the SlowSoup platform.
 
 ---
 
 ## Dataset
 
-This project uses puzzles from **SPLAT** (Chen et al., NeurIPS 2024). The dataset is **not redistributed in this repository** — please obtain `puzzles.xlsx` from the [official paper repository](https://github.com/chenqi008/LateralThinking) and place it at the project root before running. See the [Citation](#citation) section below.
+This project uses the lateral-thinking-puzzle dataset from **_Weak-eval-Strong: Evaluating and Eliciting Lateral Thinking of LLMs with Situation Puzzles_** (Chen et al., NeurIPS 2024). The dataset is **not redistributed in this repository** — please obtain `puzzles.xlsx` from the [official paper repository](https://github.com/chenqi008/LateralThinking) and place it at the project root before running. For more information, see the [Citation](#citation) section below.
 
 ---
 
@@ -63,7 +63,7 @@ Algorithm, population size, generations, and #puzzles per evaluation are configu
 | Clue generation | Groq API |
 | Quality scoring | Claude API (rubric-based) |
 | Optimization | NSGA-II / SPEA2 |
-| Puzzles + reference solutions | SPLAT dataset |
+| Puzzles + reference solutions | Chen et al. (2024) dataset |
 
 ---
 
