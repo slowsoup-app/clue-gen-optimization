@@ -63,13 +63,35 @@ Algorithm, population size, generations, and #puzzles per evaluation are configu
 | Clue generation | Groq API |
 | Quality scoring | Claude API (rubric-based) |
 | Optimization | NSGA-II / SPEA2 |
+| Baseline | Uniform Random Search (same eval budget) |
 | Puzzles + reference solutions | Chen et al. (2024) dataset |
+
+---
+
+## Experimental protocol
+
+Because metaheuristic search is stochastic, a single run is not a reliable signal. The pipeline runs each algorithm — **NSGA-II**, **SPEA2**, and **Random Search** — across **10 independent seeds** on a fixed puzzle sample (`PUZZLE_SEED = 42`). Each `(algorithm, seed)` run uses the same `POP × GENS` evaluation budget so the comparison is apples-to-apples.
+
+Random Search draws configurations uniformly from the same decision-variable space defined in [`algos/problem.py`](algos/problem.py) and returns its non-dominated front over all evaluated points.
+
+For each run we compute the **2-D hypervolume** of the final non-dominated front against a shared reference point derived from all evaluated points across all runs. This yields 10 HV samples per algorithm.
+
+We then run a **pairwise two-sided Mann-Whitney U test** on the HV samples for each algorithm pair (NSGA-II vs Random, SPEA2 vs Random, NSGA-II vs SPEA2). Results are written to [`results/stats.md`](results/stats.md).
 
 ---
 
 ## Output
 
-A Pareto front showing cost vs quality tradeoffs across different clue generation configurations. Decision maker picks their preferred operating point.
+- [`results/pareto.png`](results/pareto.png)
+  - Pareto fronts (faded = each seed, bold = best-HV seed) per algorithm.
+- [`results/hv_boxplot.png`](results/hv_boxplot.png)
+  - final-HV distribution across seeds, per algorithm.
+- [`results/convergence.png`](results/convergence.png)
+  - median HV with IQR band over generations, per algorithm.
+- [`results/stats.md`](results/stats.md)
+  - per-algorithm HV summary table and Mann-Whitney U p-values.
+
+Each `(algorithm, seed)` run is checkpointed to `results/{algo}_seed{NN}.json`, so the sweep can be interrupted and resumed without re-running completed seeds.
 
 ---
 
