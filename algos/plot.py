@@ -179,16 +179,15 @@ def run_stats(hv_per_algo):
         "than a random run of B; A12 > 0.5 favors A."
     )
     lines.append("")
-    lines.append("| A | B | U | p | significant (alpha=0.05) | A12 | magnitude |")
-    lines.append("|---|---|---|---|---|---|---|")
+    lines.append("| A | B | U | p | A12 | magnitude |")
+    lines.append("|---|---|---|---|---|---|")
     for i, a in enumerate(algos):
         for b in algos[i + 1:]:
             u, p = mannwhitneyu(hv_per_algo[a], hv_per_algo[b], alternative="two-sided")
-            sig = "yes" if p < 0.05 else "no"
             a12 = _vargha_delaney_a12(hv_per_algo[a], hv_per_algo[b])
             mag = _a12_magnitude(a12)
             lines.append(
-                f"| {a.upper()} | {b.upper()} | {u:.1f} | {p:.4g} | {sig} | "
+                f"| {a.upper()} | {b.upper()} | {u:.1f} | {p:.4g} | "
                 f"{a12:.3f} | {mag} |"
             )
     lines.append("")
