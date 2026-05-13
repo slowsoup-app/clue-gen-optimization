@@ -24,7 +24,7 @@ class HistoryCallback(Callback):
 
 
 ALGOS = ["nsga2", "spea2", "random"]
-SEEDS = list(range(1, 11))
+SEEDS = list(range(1, 6))
 POP = 10
 GENS = 5
 PUZZLES = 5
