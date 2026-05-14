@@ -39,7 +39,7 @@ For every `(algorithm, seed)` pair in the configured grid, it:
 3. For every candidate, calls `evaluate_config()` in [`clue_pipeline/runner.py`](clue_pipeline/runner.py) which:
    - generates clues via Groq (one parallel thread per puzzle in the sample),
    - grades them via Claude at `temperature = 0`,
-   - aggregates mean cost and mean quality across the sample,
+   - aggregates mean cost and mean quality across the 5 puzzles (one grader run per puzzle at `temperature = 0`),
    - caches the result by SHA-256 of `(config + puzzle indices)` under [`cache/evaluations/`](cache/evaluations/) — repeated configs are free.
 4. Writes a per-seed checkpoint to `results/{algo}_seed{NN}.json` containing the full HV history and final non-dominated front.
 
@@ -93,8 +93,10 @@ The categorical choices (`model`, `template`) are taken from `MODELS` and `PROMP
 
 ## Objectives
 
-- **Minimize cost**: Groq API cost per puzzle
-- **Maximize quality score**: Claude API (with `temperature = 0`) as grader
+Each config is evaluated on a fixed sample of 5 puzzles. The two objectives are the **mean across that sample**:
+
+- **Minimize cost**: mean Groq generation cost per puzzle (USD).
+- **Maximize quality**: mean rubric score from Claude (sum of the two sub-scores below, 0–6):
   - Non-revelation (0-3)
     - 3: No single clue reveals the core twist
     - 2: One clue is borderline but still requires inference
