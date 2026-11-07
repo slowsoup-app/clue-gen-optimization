@@ -8,6 +8,7 @@ from scipy.stats import mannwhitneyu
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 ALGOS = [("nsga2", "tab:blue"), ("spea2", "tab:orange"), ("random", "tab:gray")]
+FAILED_F = (1.0, 0.0)  # objective values recorded when an evaluation raises (see problem.py / run.py)
 
 
 def load_runs(algo: str) -> list[dict]:
@@ -38,14 +39,17 @@ def _hv_2d(points, ref):
 
 
 def _global_ref(all_runs):
-    f0s, f1s = [], []
+    """Shared HV reference point: 5% past the worst observed cost, and quality = 0
+    (the rubric's worst possible score, so f1 = 0). Failed evaluations are
+    skipped so their sentinel cost of 1.0 can't inflate the cost axis."""
+    f0s = []
     for runs in all_runs.values():
         for r in runs:
             for gen in r["history"]:
                 for f0, f1 in gen:
-                    f0s.append(f0)
-                    f1s.append(f1)
-    return max(f0s) * 1.05, max(f1s) * 1.05
+                    if (f0, f1) != FAILED_F:
+                        f0s.append(f0)
+    return max(f0s) * 1.05, 0.0
 
 
 def _final_hv(run, ref):
@@ -85,7 +89,7 @@ def plot_hv_boxplot(all_runs, ref):
     data = [hv_per_algo[a] for a, _ in ALGOS]
     labels = [a.upper() for a, _ in ALGOS]
     colors = [c for _, c in ALGOS]
-    bp = plt.boxplot(data, labels=labels, patch_artist=True, showmeans=True)
+    bp = plt.boxplot(data, tick_labels=labels, patch_artist=True, showmeans=True)
     for patch, c in zip(bp["boxes"], colors):
         patch.set_facecolor(c)
         patch.set_alpha(0.5)

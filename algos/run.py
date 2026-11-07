@@ -9,7 +9,6 @@ from pymoo.core.mixed import MixedVariableSampling, MixedVariableMating, MixedVa
 from pymoo.optimize import minimize
 
 from algos.problem import ClueGenProblem
-from clue_pipeline.generator import MODELS, PROMPT_TEMPLATES
 from clue_pipeline.runner import evaluate_config, sample_puzzles
 
 
@@ -74,10 +73,15 @@ def run_pymoo(algo, seed, problem):
     return callback.history, front
 
 
-def run_random(seed, puzzle_indices, grader_runs):
+def run_random(seed, problem):
+    # Sample from the same decision-variable space the GAs search (ClueGenProblem.vars).
+    # Keep the rng call order below unchanged, or seeds stop reproducing their saved runs.
     rng = pyrandom.Random(seed)
-    models = list(MODELS.keys())
-    templates = list(PROMPT_TEMPLATES.keys())
+    v = problem.vars
+    models = list(v["model"].options)
+    templates = list(v["template"].options)
+    n_lo, n_hi = v["n_clues"].bounds
+    t_lo, t_hi = v["temperature"].bounds
     history = []
     all_evals = []
     for _ in range(GENS):
@@ -86,16 +90,17 @@ def run_random(seed, puzzle_indices, grader_runs):
             x = {
                 "model": rng.choice(models),
                 "template": rng.choice(templates),
-                "n_clues": rng.randint(3, 8),
-                "temperature": rng.uniform(0.0, 1.0),
+                "n_clues": rng.randint(n_lo, n_hi),
+                "temperature": rng.uniform(t_lo, t_hi),
             }
             cfg = f"{x['model']}/{x['template']}/n={x['n_clues']}/T={x['temperature']:.2f}"
             try:
                 result = evaluate_config(
                     model=x["model"], template=x["template"],
                     n_clues=x["n_clues"], temperature=x["temperature"],
-                    puzzle_indices=puzzle_indices,
-                    grader_runs=grader_runs, progress=False,
+                    puzzle_indices=problem.puzzle_indices,
+                    grader_model=problem.grader_model,
+                    grader_runs=problem.grader_runs, progress=False,
                 )
                 F = [float(result.mean_gen_cost), float(-result.mean_quality)]
                 print(f"[eval] {cfg} -> cost=${result.mean_gen_cost:.5f} q={result.mean_quality:.2f}", flush=True)
@@ -137,7 +142,7 @@ def monrp():
                 continue
             print(f"\n=== {algo} seed={seed} ===")
             if algo == "random":
-                history, front = run_random(seed, puzzle_indices, GRADER_RUNS)
+                history, front = run_random(seed, problem)
             else:
                 history, front = run_pymoo(algo, seed, problem)
             data = {
